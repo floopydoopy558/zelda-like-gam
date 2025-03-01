@@ -1,0 +1,87 @@
+// Basic game setup
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Game variables
+let player = {
+  x: 50,
+  y: 50,
+  width: 32,
+  height: 32,
+  speed: 4,
+  direction: 'down',
+};
+
+let world = []; // Tilemap for the world (simplified)
+const TILE_SIZE = 32;
+
+// Load the saved game data from localStorage
+function loadGame() {
+  const savedData = localStorage.getItem('savegame');
+  if (savedData) {
+    const saveData = JSON.parse(savedData);
+    player.x = saveData.x || player.x;
+    player.y = saveData.y || player.y;
+  }
+}
+
+// Save the game data to localStorage
+function saveGame() {
+  const saveData = {
+    x: player.x,
+    y: player.y,
+  };
+  const saveText = JSON.stringify(saveData);
+  localStorage.setItem('savegame', saveText);
+}
+
+
+// Handle player movement
+function movePlayer() {
+  if (keys.ArrowUp) player.y -= player.speed;
+  if (keys.ArrowDown) player.y += player.speed;
+  if (keys.ArrowLeft) player.x -= player.speed;
+  if (keys.ArrowRight) player.x += player.speed;
+}
+
+// Handle keyboard inputs
+let keys = {};
+window.addEventListener('keydown', (e) => {
+  keys[e.key] = true;
+});
+window.addEventListener('keyup', (e) => {
+  keys[e.key] = false;
+});
+
+// Draw the game
+function drawGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw world (background)
+  for (let y = 0; y < canvas.height / TILE_SIZE; y++) {
+    for (let x = 0; x < canvas.width / TILE_SIZE; x++) {
+      ctx.fillStyle = '#228B22'; // Grass color
+      ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    }
+  }
+
+  // Draw player
+  ctx.fillStyle = 'blue';
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+// Game loop
+function gameLoop() {
+  movePlayer();
+  drawGame();
+  requestAnimationFrame(gameLoop);
+}
+
+// Start the game
+loadGame().then(() => {
+  gameLoop();
+});
+
+// Periodically save the game (every 10 seconds)
+setInterval(saveGame, 10000);
+
